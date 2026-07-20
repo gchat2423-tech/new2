@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Universe Made of You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0d0417;
+    --bg-mid:#1a0a2b;
+    --star:#fff3f8;
+    --rose:#e8b4bc;
+    --violet:#c77dff;
+    --violet-soft:#a06bd6;
+    --muted:#b79fc7;
+    --line:rgba(232,180,188,0.55);
+    --card:#170a26;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    width:100%;height:100%;
+    background:var(--bg-deep);
+    overflow-x:hidden;
+    font-family:'Poppins',sans-serif;
+    color:var(--star);
+  }
+  #stars-bg{
+    position:fixed; inset:0; z-index:0;
+    background:radial-gradient(ellipse at 50% 20%, #241238 0%, #0d0417 70%);
+  }
+  .twinkle{
+    position:absolute; border-radius:50%; background:var(--star);
+    animation:twinkle var(--dur,3s) ease-in-out infinite;
+    opacity:.3;
+  }
+  @keyframes twinkle{
+    0%,100%{opacity:.15; transform:scale(1);}
+    50%{opacity:.9; transform:scale(1.4);}
+  }
+
+  .screen{
+    position:relative; z-index:2;
+    min-height:100vh; display:none;
+    flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:70px 24px 90px;
+    opacity:0; transition:opacity .8s ease, transform .8s ease;
+    transform:translateY(14px);
+  }
+  .screen.show{ display:flex; }
+  .screen.on{ opacity:1; transform:translateY(0); }
+
+  .eyebrow{
+    font-size:12px; letter-spacing:.35em; text-transform:uppercase;
+    color:var(--rose); opacity:.8; margin-bottom:18px;
+  }
+  h1{
+    font-family:'Playfair Display',serif;
+    font-weight:500; font-style:italic;
+    font-size:clamp(2.1rem, 6vw, 3.6rem);
+    line-height:1.15;
+    max-width:820px;
+    background:linear-gradient(180deg,#fff 0%, var(--rose) 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  h2{
+    font-family:'Playfair Display',serif;
+    font-weight:600; font-size:clamp(1.7rem,4.5vw,2.5rem);
+    margin-bottom:8px;
+  }
+  .sub{
+    margin-top:20px; font-weight:300; font-size:15px;
+    color:var(--muted); max-width:440px; line-height:1.7;
+  }
+  .nav-btn{
+    margin-top:44px;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--star);
+    font-family:'Poppins',sans-serif;
+    font-size:13px; letter-spacing:.12em; text-transform:uppercase;
+    padding:16px 36px; border-radius:999px;
+    cursor:pointer; position:relative; overflow:hidden;
+    transition:border-color .35s ease, color .35s ease;
+  }
+  .nav-btn::before{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg, var(--violet-soft), var(--rose));
+    opacity:0; transition:opacity .35s ease; z-index:-1;
+  }
+  .nav-btn:hover{ border-color:transparent; }
+  .nav-btn:hover::before{ opacity:1; }
+  .nav-btn:focus-visible{ outline:2px solid var(--rose); outline-offset:3px; }
+  .nav-btn.ghost{ border-color:transparent; color:var(--muted); font-size:12px; padding:10px 18px; }
+  .nav-btn.ghost:hover{ color:var(--rose); }
+  .nav-btn.ghost::before{ display:none; }
+
+  .dots{ position:fixed; top:22px; left:50%; transform:translateX(-50%); z-index:5; display:flex; gap:8px; }
+  .dot{ width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.2); transition:background .3s ease, transform .3s ease; }
+  .dot.active{ background:var(--rose); transform:scale(1.3); }
+
+  /* ---- constellation screen ---- */
+  .constellation-wrap{ position:relative; width:min(92vw,560px); aspect-ratio:1/0.85; }
+  canvas{ width:100%; height:100%; display:block; }
+  .label{
+    position:absolute; font-family:'Cormorant Garamond',serif; font-style:italic;
+    font-size:14px; color:var(--muted); opacity:0;
+    transition:opacity 1s ease; white-space:nowrap;
+  }
+  .label.on{ opacity:.85; }
+  .name-reveal{
+    font-family:'Playfair Display',serif; font-weight:600;
+    font-size:clamp(1.6rem,4.5vw,2.4rem);
+    color:var(--star); text-align:center; margin-top:6px;
+    opacity:0; transform:translateY(10px);
+    transition:opacity 1.2s ease, transform 1.2s ease;
+  }
+  .name-reveal.on{ opacity:1; transform:translateY(0); }
+  .message-card{
+    margin-top:30px; max-width:520px; text-align:center;
+    opacity:0; transform:translateY(16px);
+    transition:opacity 1.2s ease .3s, transform 1.2s ease .3s;
+  }
+  .message-card.on{ opacity:1; transform:translateY(0); }
+  .message-card p{ font-weight:300; font-size:15.5px; line-height:1.95; color:var(--muted); }
+  .message-card p + p{ margin-top:16px; }
+  .signoff{ margin-top:26px; font-family:'Cormorant Garamond',serif; font-style:italic; font-size:19px; color:var(--rose); }
+
+  /* ---- timeline / reasons screen ---- */
+  .timeline{
+    max-width:560px; width:100%; text-align:left; margin-top:36px;
+    display:flex; flex-direction:column; gap:0;
+  }
+  .t-item{
+    position:relative; padding:0 0 34px 32px; border-left:1px solid rgba(232,180,188,0.28);
+    opacity:0; transform:translateX(-8px);
+    transition:opacity .7s ease, transform .7s ease;
+  }
+  .t-item.on{ opacity:1; transform:translateX(0); }
+  .t-item:last-child{ border-left:1px solid transparent; padding-bottom:0; }
+  .t-item::before{
+    content:''; position:absolute; left:-4.5px; top:2px;
+    width:8px; height:8px; border-radius:50%;
+    background:var(--rose); box-shadow:0 0 8px var(--rose);
+  }
+  .t-date{ font-family:'Cormorant Garamond',serif; font-style:italic; font-size:13px; color:var(--rose); opacity:.85; margin-bottom:4px; }
+  .t-text{ font-weight:300; font-size:15px; line-height:1.7; color:var(--star); opacity:.92; }
+
+  /* ---- photo gallery screen ---- */
+  .gallery{
+    display:flex; flex-wrap:wrap; justify-content:center; gap:22px;
+    max-width:640px; margin-top:36px;
+  }
+  .polaroid{
+    background:#fff; padding:10px 10px 34px; border-radius:3px;
+    width:170px; box-shadow:0 14px 30px rgba(0,0,0,0.45);
+    transform:rotate(var(--rot,0deg));
+    opacity:0; translate:0 14px;
+    transition:opacity .7s ease, translate .7s ease;
+  }
+  .polaroid.on{ opacity:1; translate:0 0; }
+  .polaroid img{
+    width:100%; aspect-ratio:1/1; object-fit:cover; display:block; background:#2a1a38;
+  }
+  .polaroid .cap{
+    font-family:'Cormorant Garamond',serif; font-style:italic; font-size:13px;
+    color:#3a2a2a; text-align:center; margin-top:10px;
+  }
+
+  /* ---- mini game screen ---- */
+  .game-wrap{
+    position:relative; width:min(92vw,520px); height:min(60vh,460px);
+    margin-top:28px; border-radius:18px; overflow:hidden;
+    background:radial-gradient(ellipse at 50% 0%, #241238 0%, #0d0417 80%);
+    border:1px solid rgba(232,180,188,0.2);
+  }
+  .game-wrap canvas{ width:100%; height:100%; display:block; cursor:none; touch-action:none; }
+  .game-hud{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    font-family:'Cormorant Garamond',serif; font-style:italic; font-size:18px;
+    color:var(--rose); letter-spacing:.05em; pointer-events:none;
+  }
+  .hud-divider{ margin:0 8px; opacity:.5; }
+  .game-start{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    margin:0; z-index:3;
+  }
+  .game-start.hidden{ display:none; }
+
+  .back-btn{
+    margin-top:50px; background:none; border:none; color:var(--muted);
+    font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    cursor:pointer; opacity:0; transition:opacity 1s ease .3s, color .3s ease;
+  }
+  .back-btn.on{ opacity:.65; }
+  .back-btn:hover{ color:var(--rose); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition-duration:.2s !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stars-bg"></div>
+<div class="dots" id="dots"></div>
+
+<!-- SCREEN 0: INTRO -->
+<section class="screen show on" id="screen-intro">
+  <div class="eyebrow">A private universe · est. today</div>
+  <h1>Somewhere out there,<br>a whole galaxy is shaped like you.</h1>
+  <p class="sub">One star for every reason. Press below to see it built, one point of light at a time.</p>
+  <button class="nav-btn" data-next="universe">Step Into Our Universe</button>
+</section>
+
+<!-- SCREEN 1: CONSTELLATION -->
+<section class="screen" id="screen-universe">
+  <div class="eyebrow">Happy Birthday</div>
+  <div class="constellation-wrap">
+    <canvas id="heartCanvas"></canvas>
+    <div class="label" id="lbl0">forever</div>
+    <div class="label" id="lbl1">your laugh</div>
+    <div class="label" id="lbl2">today &amp; always</div>
+    <div class="label" id="lbl3">my favorite person</div>
+    <div class="label" id="lbl4">home</div>
+  </div>
+  <div class="name-reveal" id="nameReveal">My Love</div>
+  <div class="message-card" id="msgCard">
+    <p>Happy birthday to the person who turned an ordinary sky into something worth naming.</p>
+    <p>Every star above traced itself into place for a reason — for a laugh, a memory, a quiet Tuesday that felt important only because you were in it.</p>
+  </div>
+  <button class="nav-btn" id="toReasons" style="opacity:0" data-next="reasons">A Few Reasons Why</button>
+</section>
+
+<!-- SCREEN 2: REASONS / TIMELINE -->
+<section class="screen" id="screen-reasons">
+  <div class="eyebrow">Little Proofs, In Order</div>
+  <h2>Reasons, dated and kept</h2>
+  <p class="sub">Not all of them. Just the ones that come to mind first.</p>
+  <div class="timeline" id="timeline">
+    <div class="t-item"><div class="t-date">Reason one</div><div class="t-text">The way you say my name when you're half asleep.</div></div>
+    <div class="t-item"><div class="t-date">Reason two</div><div class="t-text">You remember the small things I mention once, in passing.</div></div>
+    <div class="t-item"><div class="t-date">Reason three</div><div class="t-text">You make ordinary days feel like they mattered.</div></div>
+    <div class="t-item"><div class="t-date">Reason four</div><div class="t-text">Your laugh, unfiltered, every single time.</div></div>
+    <div class="t-item"><div class="t-date">Still counting</div><div class="t-text">And a hundred more I haven't found the words for yet.</div></div>
+  </div>
+  <button class="nav-btn" data-next="photos">See Us</button>
+</section>
+
+<!-- SCREEN 3: PHOTOS -->
+<section class="screen" id="screen-photos">
+  <div class="eyebrow">Kept, Not Just Stored</div>
+  <h2>A few of my favorites</h2>
+  <p class="sub">Replace these frames with your own photos — see the note in the code.</p>
+  <div class="gallery" id="gallery">
+    <div class="polaroid" style="--rot:-4deg"><img src="PHOTO_1.jpg" alt="memory one" onerror="this.style.background='linear-gradient(135deg,#3a1f4d,#5c2a52)'"><div class="cap">memory one</div></div>
+    <div class="polaroid" style="--rot:3deg"><img src="PHOTO_2.jpg" alt="memory two" onerror="this.style.background='linear-gradient(135deg,#2a1f4d,#4a2a6c)'"><div class="cap">memory two</div></div>
+    <div class="polaroid" style="--rot:-2deg"><img src="PHOTO_3.jpg" alt="memory three" onerror="this.style.background='linear-gradient(135deg,#4d1f3a,#6c2a4a)'"><div class="cap">memory three</div></div>
+  </div>
+  <button class="nav-btn" data-next="game">One Last Thing</button>
+</section>
+
+<!-- SCREEN 4: MINI GAME -->
+<section class="screen" id="screen-game">
+  <div class="eyebrow">Just For Fun</div>
+  <h2 id="gameTitle">Catch the Falling Stars</h2>
+  <p class="sub" id="gameSub">Move your finger or mouse across the sky. Fifteen seconds — see how many you catch.</p>
+
+  <div class="game-wrap" id="gameWrap">
+    <canvas id="gameCanvas"></canvas>
+    <div class="game-hud">
+      <span id="gameScore">0</span>
+      <span class="hud-divider">·</span>
+      <span id="gameTime">15</span>s
+    </div>
+    <button class="nav-btn game-start" id="gameStartBtn">Start</button>
+  </div>
+
+  <div class="message-card" id="gameResult">
+    <p id="gameResultText"></p>
+  </div>
+
+  <div class="signoff" style="margin-top:34px">— with all my love</div>
+  <button class="back-btn" id="backBtn">← back to the beginning</button>
+</section>
+
+<script>
+// ambient background stars
+const bg = document.getElementById('stars-bg');
+for(let i=0;i<70;i++){
+  const s = document.createElement('div');
+  s.className='twinkle';
+  const size = Math.random()*2+1;
+  s.style.width = size+'px'; s.style.height = size+'px';
+  s.style.left = Math.random()*100+'%'; s.style.top = Math.random()*100+'%';
+  s.style.setProperty('--dur',(2+Math.random()*4)+'s');
+  s.style.animationDelay = (Math.random()*4)+'s';
+  bg.appendChild(s);
+}
+
+const order = ['intro','universe','reasons','photos','game'];
+const dotsWrap = document.getElementById('dots');
+order.forEach((id,i)=>{
+  const d = document.createElement('div');
+  d.className = 'dot' + (i===0?' active':'');
+  d.dataset.id = id;
+  dotsWrap.appendChild(d);
+});
+
+function setDots(id){
+  document.querySelectorAll('.dot').forEach(d=> d.classList.toggle('active', d.dataset.id===id));
+}
+
+function goTo(id){
+  const current = document.querySelector('.screen.show');
+  const next = document.getElementById('screen-'+id);
+  if(current){
+    current.classList.remove('on');
+    setTimeout(()=>{ current.classList.remove('show'); showNext(); }, 600);
+  } else {
+    showNext();
+  }
+  function showNext(){
+    next.classList.add('show');
+    requestAnimationFrame(()=> requestAnimationFrame(()=> next.classList.add('on')));
+    setDots(id);
+    if(id==='universe') startConstellation();
+    if(id==='reasons') revealTimeline();
+    if(id==='photos') revealGallery();
+    if(id==='game') initGame();
+  }
+}
+
+document.body.addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-next]');
+  if(btn) goTo(btn.dataset.next);
+});
+
+document.getElementById('backBtn').addEventListener('click', ()=>{
+  document.querySelectorAll('.t-item,.polaroid,.label,.name-reveal,.message-card').forEach(el=>el.classList.remove('on'));
+  document.getElementById('toReasons').style.opacity = 0;
+  resetGame();
+  goTo('intro');
+});
+
+/* ---------------- CONSTELLATION ---------------- */
+const canvas = document.getElementById('heartCanvas');
+const ctx = canvas.getContext('2d');
+let animId = null, startTime = null;
+const DURATION = 2600;
+
+function heartPoint(t){
+  const x = 16*Math.pow(Math.sin(t),3);
+  const y = 13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t);
+  return {x, y:-y};
+}
+function resizeCanvas(){
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * devicePixelRatio;
+  canvas.height = rect.height * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+function drawConstellation(progress){
+  const w = canvas.width/devicePixelRatio, h = canvas.height/devicePixelRatio;
+  ctx.clearRect(0,0,w,h);
+  const N = 40;
+  const scale = Math.min(w,h)/40;
+  const cx = w/2, cy = h/2 - h*0.04;
+  const pts = [];
+  for(let i=0;i<=N;i++){
+    const t = (i/N)*Math.PI*2;
+    const p = heartPoint(t);
+    pts.push({ x: cx + p.x*scale, y: cy + p.y*scale });
+  }
+  const visibleCount = Math.floor(progress * N);
+  ctx.strokeStyle = 'rgba(232,180,188,0.45)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  for(let i=0;i<visibleCount;i++){
+    const a = pts[i], b = pts[i+1];
+    if(!b) continue;
+    if(i===0) ctx.moveTo(a.x,a.y);
+    ctx.lineTo(b.x,b.y);
+  }
+  ctx.stroke();
+  if(progress > 0.94){
+    ctx.save();
+    ctx.beginPath();
+    pts.forEach((p,i)=> i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
+    ctx.closePath();
+    const grad = ctx.createRadialGradient(cx,cy,10,cx,cy,scale*18);
+    grad.addColorStop(0,'rgba(199,125,255,0.18)');
+    grad.addColorStop(1,'rgba(199,125,255,0)');
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.restore();
+  }
+  for(let i=0;i<visibleCount;i++){
+    const p = pts[i];
+    const twinkle = 0.6 + 0.4*Math.sin(Date.now()/500 + i);
+    ctx.beginPath();
+    ctx.arc(p.x,p.y, 1.8, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,243,248,${twinkle})`;
+    ctx.shadowColor = '#e8b4bc'; ctx.shadowBlur = 6;
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+}
+function animateConstellation(ts){
+  if(!startTime) startTime = ts;
+  const elapsed = ts - startTime;
+  const progress = Math.min(elapsed/DURATION, 1);
+  drawConstellation(progress);
+  if(progress < 1){
+    animId = requestAnimationFrame(animateConstellation);
+  } else {
+    animId = requestAnimationFrame(function loop(){ drawConstellation(1); animId = requestAnimationFrame(loop); });
+    revealUniverseContent();
+  }
+}
+function revealUniverseContent(){
+  const labels = ['lbl0','lbl1','lbl2','lbl3','lbl4'];
+  const positions = [
+    {top:'6%', left:'50%'},{top:'30%', left:'6%'},{top:'30%', left:'70%'},
+    {top:'70%', left:'8%'},{top:'78%', left:'62%'},
+  ];
+  labels.forEach((id,i)=>{
+    const el = document.getElementById(id);
+    el.style.top = positions[i].top; el.style.left = positions[i].left;
+    setTimeout(()=> el.classList.add('on'), 200 + i*260);
+  });
+  setTimeout(()=> document.getElementById('nameReveal').classList.add('on'), 1500);
+  setTimeout(()=> document.getElementById('msgCard').classList.add('on'), 2000);
+  setTimeout(()=> document.getElementById('toReasons').style.opacity = 1, 2600);
+}
+function startConstellation(){
+  resizeCanvas(); startTime = null; cancelAnimationFrame(animId);
+  animId = requestAnimationFrame(animateConstellation);
+}
+window.addEventListener('resize', ()=>{ if(document.getElementById('screen-universe').classList.contains('show')) resizeCanvas(); });
+
+/* ---------------- TIMELINE REVEAL ---------------- */
+function revealTimeline(){
+  document.querySelectorAll('.t-item').forEach((el,i)=>{
+    setTimeout(()=> el.classList.add('on'), 200 + i*220);
+  });
+}
+
+/* ---------------- GALLERY REVEAL ---------------- */
+function revealGallery(){
+  document.querySelectorAll('.polaroid').forEach((el,i)=>{
+    setTimeout(()=> el.classList.add('on'), 200 + i*220);
+  });
+}
+
+/* ---------------- MINI GAME: CATCH THE FALLING STARS ---------------- */
+const gCanvas = document.getElementById('gameCanvas');
+const gCtx = gCanvas.getContext('2d');
+const gameStartBtn = document.getElementById('gameStartBtn');
+const gameResult = document.getElementById('gameResult');
+const gameResultText = document.getElementById('gameResultText');
+const gameScoreEl = document.getElementById('gameScore');
+const gameTimeEl = document.getElementById('gameTime');
+
+let gState = null; // holds all mutable game state
+const GAME_LEN = 15; // seconds
+
+function resizeGameCanvas(){
+  const rect = gCanvas.parentElement.getBoundingClientRect();
+  gCanvas.width = rect.width * devicePixelRatio;
+  gCanvas.height = rect.height * devicePixelRatio;
+  gCtx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+
+function initGame(){
+  resizeGameCanvas();
+  gameResult.classList.remove('on');
+  gameResultText.textContent = '';
+  gameStartBtn.classList.remove('hidden');
+  gameScoreEl.textContent = '0';
+  gameTimeEl.textContent = GAME_LEN;
+  gState = null;
+  window.addEventListener('resize', resizeGameCanvas);
+  setTimeout(()=> document.getElementById('backBtn').classList.add('on'), 400);
+}
+
+function resetGame(){
+  if(gState) gState.running = false;
+  cancelAnimationFrame(gState && gState.raf);
+  gState = null;
+}
+
+function heartPath(ctx, x, y, size){
+  ctx.beginPath();
+  const s = size;
+  ctx.moveTo(x, y + s*0.3);
+  ctx.bezierCurveTo(x, y, x - s*0.5, y, x - s*0.5, y + s*0.3);
+  ctx.bezierCurveTo(x - s*0.5, y + s*0.6, x, y + s*0.9, x, y + s*1.1);
+  ctx.bezierCurveTo(x, y + s*0.9, x + s*0.5, y + s*0.6, x + s*0.5, y + s*0.3);
+  ctx.bezierCurveTo(x + s*0.5, y, x, y, x, y + s*0.3);
+  ctx.closePath();
+}
+
+gameStartBtn.addEventListener('click', startGame);
+
+function startGame(){
+  gameStartBtn.classList.add('hidden');
+  const w = gCanvas.width/devicePixelRatio, h = gCanvas.height/devicePixelRatio;
+  gState = {
+    running:true, score:0, timeLeft:GAME_LEN,
+    catcher:{ x:w/2, y:h-36, r:20 },
+    items:[], lastSpawn:0, lastTick:performance.now(), lastSecond:performance.now(),
+    raf:null
+  };
+  const wrap = document.getElementById('gameWrap');
+
+  function pointerMove(e){
+    if(!gState || !gState.running) return;
+    const rect = gCanvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const x = clientX - rect.left;
+    gState.catcher.x = Math.max(24, Math.min(w-24, x));
+  }
+  wrap.addEventListener('mousemove', pointerMove);
+  wrap.addEventListener('touchmove', (e)=>{ e.preventDefault(); pointerMove(e); }, {passive:false});
+  gState.cleanup = ()=>{
+    wrap.removeEventListener('mousemove', pointerMove);
+    wrap.removeEventListener('touchmove', pointerMove);
+  };
+
+  function spawnItem(){
+    gState.items.push({
+      x: 20 + Math.random()*(w-40),
+      y: -20,
+      speed: 60 + Math.random()*50,
+      size: 12 + Math.random()*8,
+      caught:false
+    });
+  }
+
+  function loop(ts){
+    if(!gState || !gState.running) return;
+    const dt = (ts - gState.lastTick)/1000;
+    gState.lastTick = ts;
+
+    if(ts - gState.lastSpawn > 550){ spawnItem(); gState.lastSpawn = ts; }
+    if(ts - gState.lastSecond > 1000){
+      gState.timeLeft -= 1;
+      gState.lastSecond = ts;
+      gameTimeEl.textContent = Math.max(0, gState.timeLeft);
+      if(gState.timeLeft <= 0){ endGame(); return; }
+    }
+
+    gCtx.clearRect(0,0,w,h);
+
+    // catcher (heart basket)
+    gCtx.save();
+    heartPath(gCtx, gState.catcher.x, gState.catcher.y-14, 20);
+    gCtx.fillStyle = 'rgba(232,180,188,0.9)';
+    gCtx.shadowColor = '#e8b4bc'; gCtx.shadowBlur = 12;
+    gCtx.fill();
+    gCtx.restore();
+
+    for(let i=gState.items.length-1; i>=0; i--){
+      const it = gState.items[i];
+      it.y += it.speed*dt;
+
+      const dx = it.x - gState.catcher.x, dy = it.y - (gState.catcher.y-10);
+      if(!it.caught && Math.sqrt(dx*dx+dy*dy) < gState.catcher.r+it.size*0.5){
+        it.caught = true;
+        gState.score++;
+        gameScoreEl.textContent = gState.score;
+        gState.items.splice(i,1);
+        continue;
+      }
+      if(it.y > h+20){ gState.items.splice(i,1); continue; }
+
+      gCtx.save();
+      const tw = 0.7 + 0.3*Math.sin(ts/200 + i);
+      heartPath(gCtx, it.x, it.y, it.size*0.6);
+      gCtx.fillStyle = `rgba(255,243,248,${tw})`;
+      gCtx.shadowColor = '#c77dff'; gCtx.shadowBlur = 8;
+      gCtx.fill();
+      gCtx.restore();
+    }
+
+    gState.raf = requestAnimationFrame(loop);
+  }
+  gState.raf = requestAnimationFrame(loop);
+}
+
+function endGame(){
+  if(!gState) return;
+  gState.running = false;
+  cancelAnimationFrame(gState.raf);
+  if(gState.cleanup) gState.cleanup();
+  const score = gState.score;
+
+  let msg;
+  if(score >= 18) msg = `${score} stars caught. Honestly, that's about how many reasons I have to love you — and I'm still not close to done counting.`;
+  else if(score >= 10) msg = `${score} stars caught — not bad. Turns out catching stars is easier than finding the words for how much you mean to me.`;
+  else msg = `${score} stars caught. Maybe the sky just wanted an excuse to keep a few for itself. Happy birthday, anyway — every single one out there is still about you.`;
+
+  gameResultText.textContent = msg;
+  gameResult.classList.add('on');
+  setTimeout(()=> document.getElementById('backBtn').classList.add('on'), 500);
+}
+</script>
+</body>
+</html>
